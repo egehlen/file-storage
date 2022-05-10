@@ -8,40 +8,40 @@ import { Account, AccountDocument } from './entities/account.entity';
 @Injectable()
 export class AccountService {
 
-  constructor(@InjectModel(Account.name) private accountModel: Model<AccountDocument>) {}
+    constructor(@InjectModel(Account.name) private accountModel: Model<AccountDocument>) { }
 
-  create(createaccountDto: CreateAccountDto) {
-    const account = new this.accountModel(createaccountDto);
-    return account.save();
-  }
+    create(createaccountDto: CreateAccountDto) {
+        const account = new this.accountModel(createaccountDto);
+        return account.save();
+    }
 
-  findAll() {
-    return this.accountModel.find();
-  }
+    findAll() {
+        return this.accountModel.find();
+    }
 
-  findOne(id: string) {
-    return this.accountModel.findById(id);
-  }
+    findOne(id: string) {
+        return this.accountModel.findById(id);
+    }
 
-  update(id: string, updateAccountDto: UpdateAccountDto) {
-    return this.accountModel.findByIdAndUpdate(
-      {
-        _id: id
-      },
-      {
-        $set: updateAccountDto
-      },
-      {
-        new: true
-      }
-    )
-  }
+    update(id: string, updateAccountDto: UpdateAccountDto) {
+        return this.accountModel.findByIdAndUpdate(
+            {
+                _id: id
+            },
+            {
+                $set: updateAccountDto
+            },
+            {
+                new: true
+            }
+        )
+    }
 
-  remove(id: string) {
-    return this.accountModel
-      .deleteOne({
-        _id: id
-      })
-      .exec();
-  }
+    remove(id: string) {
+        return this.accountModel
+            .deleteOne({
+                _id: id
+            })
+            .exec();
+    }
 }
