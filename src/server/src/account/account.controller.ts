@@ -1,3 +1,4 @@
+import { AuthGuard } from 'src/common/auth.guard';
 import {
     Controller,
     Get,
@@ -6,14 +7,18 @@ import {
     Patch,
     Param,
     Delete,
+    UseGuards,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 
 @Controller('account')
+@UseGuards(AuthGuard)
 export class AccountController {
-    constructor(private readonly accountService: AccountService) { }
+    constructor(
+        private readonly accountService: AccountService
+    ) { }
 
     @Post()
     create(@Body() createAccountDto: CreateAccountDto) {

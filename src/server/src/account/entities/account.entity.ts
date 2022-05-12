@@ -6,13 +6,13 @@ export type AccountDocument = Account & Document;
 @Schema()
 export class Account {
     @Prop()
-    name: string;
+    username: string;
 
     @Prop()
     email: string;
 
     @Prop()
-    password: string;
+    passwordHash: string;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

@@ -1,3 +1,4 @@
+import { EncryptionService } from 'src/shared/encryption.service';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -8,10 +9,14 @@ import { Account, AccountDocument } from './entities/account.entity';
 @Injectable()
 export class AccountService {
 
-    constructor(@InjectModel(Account.name) private accountModel: Model<AccountDocument>) { }
+    constructor(
+        @InjectModel(Account.name) private accountModel: Model<AccountDocument>,
+        private readonly encryptionService: EncryptionService
+    ) { }
 
     create(createaccountDto: CreateAccountDto) {
-        const account = new this.accountModel(createaccountDto);
+        const passwordHash = this.encryptionService.getHash(createaccountDto.password);
+        const account = new this.accountModel({...createaccountDto, passwordHash });
         return account.save();
     }
 
@@ -23,25 +28,22 @@ export class AccountService {
         return this.accountModel.findById(id);
     }
 
+    findByName(name: string) {
+        return this.accountModel.find({ name });
+    }
+
     update(id: string, updateAccountDto: UpdateAccountDto) {
+        const passwordHash = this.encryptionService.getHash(updateAccountDto.password);
         return this.accountModel.findByIdAndUpdate(
-            {
-                _id: id
-            },
-            {
-                $set: updateAccountDto
-            },
-            {
-                new: true
-            }
-        )
+            { _id: id },
+            { $set: {...updateAccountDto, passwordHash} },
+            { new: true }
+        );
     }
 
     remove(id: string) {
         return this.accountModel
-            .deleteOne({
-                _id: id
-            })
+            .deleteOne({ _id: id })
             .exec();
     }
 }
