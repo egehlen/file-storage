@@ -1,13 +1,18 @@
+import { CoreModule } from './core.module';
+import { SharedModule } from './shared/shared.module';
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { AccountModule } from './account/account.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
-        MongooseModule.forRoot('mongodb://127.0.0.1:27017'),
-        AccountModule
+        CoreModule,
+        AccountModule,
+        AuthModule,
+        SharedModule
     ],
     controllers: [],
     providers: [],
+    exports: []
 })
 export class AppModule { }
