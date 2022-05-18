@@ -17,7 +17,7 @@ export class AuthGuard implements CanActivate {
 
     validateRequest(request: Request): boolean {
         try {
-            const token = request.headers['x-access-token'];
+            const token = request.headers['authorization'];
             if (!token || token === '') return false;
 
             return !!this.jwtService.verify(token);
