@@ -1,6 +1,6 @@
 node_modules
 dist
 .env
-.env.dev
-.env.prod
 !.env.example
+.vscode
+.vscode/launch.json

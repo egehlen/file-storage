@@ -1,18 +1,12 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-
-export type AccountDocument = Account & Document;
-
-@Schema()
 export class Account {
-    @Prop()
-    username: string;
-
-    @Prop()
+    id: number;
+    name: string;
     email: string;
-
-    @Prop()
     passwordHash: string;
-}
 
-export const AccountSchema = SchemaFactory.createForClass(Account);
+    constructor(dto: { name: string,  email: string,  passwordHash: string }) {
+        this.name = dto.name;
+        this.email = dto.email;
+        this.passwordHash = dto.passwordHash;
+    }
+}
