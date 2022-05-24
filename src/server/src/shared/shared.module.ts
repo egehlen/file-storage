@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { EncryptionService } from './encryption.service';
+import { CryptoService } from './crypto.service';
+import { WebSocketService } from './web-socket.service';
 
 @Module({
-    providers: [EncryptionService],
-    exports: [EncryptionService]
+    providers: [CryptoService, WebSocketService],
+    exports: [CryptoService, WebSocketService]
 })
 export class SharedModule {}

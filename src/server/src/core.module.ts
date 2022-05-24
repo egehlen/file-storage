@@ -1,8 +1,11 @@
+import { AccountService } from 'src/account/account.service';
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
+import { AuthService } from "./auth/auth.service";
 import { DatabaseService } from "./db/database.service";
-import { EncryptionService } from "./shared/encryption.service";
+import { CryptoService } from "./shared/crypto.service";
+import { WebSocketService } from './shared/web-socket.service';
 
 @Global()
 @Module({
@@ -14,13 +17,19 @@ import { EncryptionService } from "./shared/encryption.service";
         })
     ],
     providers: [
-        EncryptionService,
-        DatabaseService
+        CryptoService,
+        DatabaseService,
+        WebSocketService,
+        AuthService,
+        AccountService
     ],
     exports: [
-        EncryptionService,
+        AccountService,
+        CryptoService,
         DatabaseService,
-        JwtModule
+        WebSocketService,
+        JwtModule,
+        AuthService
     ]
 })
 export class CoreModule { }

@@ -8,14 +8,26 @@ generator client {
 }
 
 model Account {
-    id    Int     @id @default(autoincrement())
-    name  String?
-    email String  @unique
-    passwordHash    String
+    id String @id @default(uuid())
+    name String?
+    email String @unique
+    passwordHash String
+    files File[]
 }
 
 model Session {
-    id  Int @id @default(autoincrement())
-    token String  @unique
+    id String @id @default(uuid())
+    token String @unique
     createdAt DateTime?
+}
+
+model File {
+    id String @id @default(uuid())
+    name String
+    type String
+    size Int
+    thumbnailUrl String
+    contentUrl String
+    owner Account @relation(fields: [ownerId], references: [id])
+    ownerId String
 }

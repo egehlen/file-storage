@@ -3,7 +3,7 @@ import { AccountService } from './../account/account.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { EncryptionService } from 'src/shared/encryption.service';
+import { CryptoService } from 'src/shared/crypto.service';
 import { DatabaseService } from 'src/db/database.service';
 import * as httpMocks from 'node-mocks-http';
 
@@ -30,7 +30,7 @@ describe('AuthController', () => {
             providers: [
                 AuthService,
                 {
-                    provide: EncryptionService,
+                    provide: CryptoService,
                     useValue: {
                         getHash: () => mocks.results.hashedPassword
                     }

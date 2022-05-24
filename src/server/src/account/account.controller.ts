@@ -15,19 +15,19 @@ export class AccountController {
 
     @Get(':id')
     @UseGuards(AuthGuard)
-    findOne(@Param('id') id: number) {
-        return this.accountService.findOne(+id);
+    findOne(@Param('id') id: string) {
+        return this.accountService.findOne(id);
     }
 
     @Patch(':id')
     @UseGuards(AuthGuard)
-    update(@Param('id') id: number, @Body() updateAccountDto: UpdateAccountDto) {
-        return this.accountService.update(+id, updateAccountDto);
+    update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto) {
+        return this.accountService.update(id, updateAccountDto);
     }
 
     @Delete(':id')
     @UseGuards(AuthGuard)
-    remove(@Param('id') id: number) {
-        return this.accountService.remove(+id);
+    remove(@Param('id') id: string) {
+        return this.accountService.remove(id);
     }
 }

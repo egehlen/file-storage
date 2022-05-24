@@ -1,28 +1,33 @@
 import { DatabaseService } from '../db/database.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AccountService } from 'src/account/account.service';
-import { EncryptionService } from 'src/shared/encryption.service';
+import { CryptoService } from 'src/shared/crypto.service';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { CredentialsValidationResult } from './types/credentials.validation.result.type';
+import { TokenPayload } from './types/token.payload.type';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly accountService: AccountService,
-        private readonly encryptionService: EncryptionService,
+        private readonly cryptoService: CryptoService,
         private readonly dbService: DatabaseService,
         private readonly jwtService: JwtService
-    ) {}
+    ) { }
 
-    private async validateCredentials(loginDto: LoginDto): Promise<any> {
+    private async validateCredentials(loginDto: LoginDto): Promise<CredentialsValidationResult> {
         const account = await this.accountService.findByEmail(loginDto.email);
 
         if (account) {
-            const hashedPassword = this.encryptionService.getHash(loginDto.password);
-            return (account.passwordHash === hashedPassword);
+            const hashedPassword = this.cryptoService.getHash(loginDto.password);
+            
+            if (account.passwordHash === hashedPassword) {
+                return { valid: true, account };
+            }
         }
 
-        return false;
+        return { valid: false, account: null };
     }
 
     public async validateSession(token: string) {
@@ -37,12 +42,14 @@ export class AuthService {
         if (!loginDto || !loginDto.email || !loginDto.password)
             throw new UnauthorizedException('Login failed: credentials not provided.');
 
-        if (await this.validateCredentials(loginDto)) {
-            const payload = { username: loginDto.email };
+        const { valid, account } = await this.validateCredentials(loginDto);
+
+        if (valid === true && !!account) {
+            const payload: TokenPayload = { id: account.id };
             const token = this.jwtService.sign(payload);
             
             await this.dbService.session.create({ data: { token } });
-            return { token };
+            return { authorization: token };
         }
         else {
             throw new UnauthorizedException('Login failed: incorrect user name or password.');

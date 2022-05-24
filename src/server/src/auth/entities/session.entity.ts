@@ -1,5 +1,5 @@
 export class Session {
-    id: number;
+    id: string;
     token: string;
     createdAt: Date;
 
