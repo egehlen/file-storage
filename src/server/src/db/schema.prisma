@@ -26,7 +26,7 @@ model File {
     name String
     type String
     size Int
-    thumbnailUrl String
+    thumbnailUrl String?
     contentUrl String
     owner Account @relation(fields: [ownerId], references: [id])
     ownerId String

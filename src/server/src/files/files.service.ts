@@ -11,7 +11,6 @@ import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
 export class FilesService {
     private readonly allowedFileTypes = ['jpg','jpeg','png','zip','pdf','docx','xlsx'];
     private readonly thumbnailWidth: number = 180;
-    private readonly thumbnailHeight: number = 120;
 
     constructor(
         private readonly dbService: DatabaseService,
@@ -43,8 +42,7 @@ export class FilesService {
                 fileName: thumbFileName
             } = await this.generateThumbnail(file);
             
-            const encryptedThumbnail = this.cryptoService.encrypt(thumbContent, uploadRequest.accountId);
-            thumbUploadResult = await this.storageService.upload(uploadRequest.accountId, uploadRequest.correlationId, thumbFileName, encryptedThumbnail);
+            thumbUploadResult = await this.storageService.upload(uploadRequest.accountId, uploadRequest.correlationId, thumbFileName, thumbContent);
         }
 
         /* Write to database */
@@ -54,7 +52,7 @@ export class FilesService {
                 type: file.mimetype,
                 size: file.size,
                 contentUrl: uploadResult.Location,
-                thumbnailUrl: thumbUploadResult.Location,
+                thumbnailUrl: thumbUploadResult?.Location,
                 owner: {
                     connect: {
                         id: uploadRequest.accountId
@@ -64,8 +62,8 @@ export class FilesService {
             select: { id: true }
         });
 
-        /* Get direct url */
-        const presignedUrl = await this.storageService.getPreSignedUrl(uploadResult.Key);
+        /* Get direct url for thumbnail */
+        const presignedUrl = !!thumbUploadResult ? await this.storageService.getPreSignedUrl(thumbUploadResult.Key) :'';
 
         return {
             id: newRow.id,
@@ -133,7 +131,7 @@ export class FilesService {
         try {
             const fileHandler = sharp(file.buffer);
             const fileContents: Buffer = await fileHandler
-                .resize(this.thumbnailWidth, this.thumbnailHeight)
+                .resize(this.thumbnailWidth, null)
                 .toBuffer();
 
             const fileNameParts = file.originalname.split('.');
@@ -142,7 +140,8 @@ export class FilesService {
 
             return { contents: fileContents, fileName };
         } catch (error) {
-            throw error;
+            //log error;
+            return { contents: null, fileName: '' };
         }
     }
 }
