@@ -8,15 +8,15 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 const mocks = {
     dtos: {
         create:  { name: 'abc', email: 'abc@abc.com', password: '123' },
-        findOne: { id: 1 },
-        update:  { id: 1, body: { name: 'cba', email: 'cba@cba.com', password: '345' } },
-        remove:  { id: 1 }
+        findOne: { id: '1' },
+        update:  { id: '1', body: { name: 'cba', email: 'cba@cba.com', password: '345' } },
+        remove:  { id: '1' }
     },
     results: {
-        create:  { id: 1 },
-        findOne: { id: 1, name: 'abc', email: 'abc@abc.com', passwordHash: '123' },
-        update:  { id: 1, name: 'cba', email: 'cba@cba.com', passwordHash: '345' },
-        remove:  { id: 1, name: 'abc', email: 'abc@abc.com', passwordHash: '123' }
+        create:  { id: '1' },
+        findOne: { id: '1', name: 'abc', email: 'abc@abc.com', passwordHash: '123' },
+        update:  { id: '1', name: 'cba', email: 'cba@cba.com', passwordHash: '345' },
+        remove:  { id: '1', name: 'abc', email: 'abc@abc.com', passwordHash: '123' }
     }
 };
 

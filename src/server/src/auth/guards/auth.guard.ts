@@ -1,3 +1,4 @@
+import { AuthService } from './../auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Observable } from 'rxjs';
@@ -7,6 +8,7 @@ import { JsonWebTokenError } from 'jsonwebtoken';
 export class AuthGuard implements CanActivate {
 
     constructor(
+        private readonly authService: AuthService,
         private readonly jwtService: JwtService
     ) {}
 
@@ -15,13 +17,19 @@ export class AuthGuard implements CanActivate {
         return this.validateRequest(request);
     }
 
-    validateRequest(request: Request): boolean {
+    async validateRequest(request: Request): Promise<boolean> {
         try {
             const token = request.headers['authorization'];
-            if (!token || token === '') return false;
+            
+            if (!token || token === '')
+                return false;
 
-            return !!this.jwtService.verify(token);
-        } catch (error) {
+            const validToken = !!this.jwtService.verify(token);
+            const validSession = await this.authService.validateSession(token);
+
+            return validToken && validSession;
+        }
+        catch (error) {
             if (error instanceof JsonWebTokenError)
                 return false;
             else

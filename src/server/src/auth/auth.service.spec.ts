@@ -2,7 +2,7 @@ import { DatabaseService } from '../db/database.service';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountService } from 'src/account/account.service';
-import { EncryptionService } from 'src/shared/encryption.service';
+import { CryptoService } from 'src/shared/crypto.service';
 import { AuthService } from './auth.service';
 
 const mocks = {
@@ -20,7 +20,7 @@ describe('AuthService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 AuthService,
-                EncryptionService,
+                CryptoService,
                 {
                     provide: DatabaseService,
                     useValue: {

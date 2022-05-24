@@ -3,13 +3,15 @@ import { SharedModule } from './shared/shared.module';
 import { Module } from '@nestjs/common';
 import { AccountModule } from './account/account.module';
 import { AuthModule } from './auth/auth.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
     imports: [
         CoreModule,
         AccountModule,
         AuthModule,
-        SharedModule
+        SharedModule,
+        FilesModule
     ],
     controllers: [],
     providers: [],

@@ -1,4 +1,4 @@
-import { EncryptionService } from 'src/shared/encryption.service';
+import { CryptoService } from 'src/shared/crypto.service';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -8,15 +8,15 @@ import { AccountService } from './account.service';
 const mocks = {
     dtos: {
         create:  { name: 'abc', email: 'abc@abc.com', password: '123' },
-        findOne: { id: 1 },
+        findOne: { id: '1' },
         findByEmail: { email: 'abc@abc.com' },
-        update:  { id: 1, body: { name: 'cba', email: 'cba@cba.com', password: '345' } },
-        remove:  { id: 1 }
+        update:  { id: '1', body: { name: 'cba', email: 'cba@cba.com', password: '345' } },
+        remove:  { id: '1' }
     },
     results: {
-        created: { id: 1 },
-        existing: { id: 1, name: 'abc', email: 'abc@abc.com', passwordHash: '123' },
-        updated:  { id: 1, name: 'cba', email: 'cba@cba.com', passwordHash: '345' }
+        created:  { id: '1' },
+        existing: { id: '1', name: 'abc', email: 'abc@abc.com', passwordHash: '123' },
+        updated:  { id: '1', name: 'cba', email: 'cba@cba.com', passwordHash: '345' }
     }
 };
 
@@ -27,7 +27,7 @@ describe('AccountService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 AccountService,
-                EncryptionService,
+                CryptoService,
                 {
                     provide: DatabaseService,
                     useValue: {
