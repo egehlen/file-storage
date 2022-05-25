@@ -4,26 +4,27 @@ import { FilesService } from './files.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadRequestDto } from './dto/upload-request.dto';
+import { GetFileRequestDto } from './dto/get-request.dto';
 
 @Controller('files')
+@UseGuards(AuthGuard)
 export class FilesController {
     constructor(private readonly filesService: FilesService) { }
 
-    @Post('upload')
-    @UseGuards(AuthGuard)
+    @Post()
     @UseInterceptors(FileInterceptor('file'))
     async upload(@Body() uploadFilesDto: UploadRequestDto, @UploadedFile() file: Express.Multer.File) {
         return await this.filesService.create(uploadFilesDto, file);
     }
 
     @Get()
-    findAll() {
-        return this.filesService.findAll();
+    getAll(@Body() getRequest: GetFileRequestDto) {
+        return this.filesService.getAll(getRequest.accountId);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.filesService.findOne(id);
+    getOne(@Param('id') id: string) {
+        return this.filesService.getOne(id);
     }
 
     @Patch(':id')
