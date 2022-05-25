@@ -8,6 +8,7 @@ import * as sharp from 'sharp';
 import { UploadResultDto } from './dto/upload-result.dto';
 import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
 import { isNullOrEmpty, getThumbnailName } from 'src/shared/utilities';
+import { FileDto } from './dto/file.dto';
 
 @Injectable()
 export class FilesService {
@@ -82,11 +83,22 @@ export class FilesService {
         };
     }
 
-    findAll() {
-        return `This action returns all files`;
+    async getAll(accountId: string): Promise<FileDto[]> {
+        const files = await this.dbService.file.findMany({
+            where: { ownerId: accountId }
+        });
+
+        const result = await Promise.all(files.map(async(file) => {
+            const thumbnailUrl = !isNullOrEmpty(file.thumbnailKey) ?
+                await this.storageService.getPreSignedUrl(file.thumbnailKey) : '';
+
+            return { ...file, thumbnailUrl };
+        }));
+        
+        return result;
     }
 
-    findOne(id: string) {
+    getOne(id: string) {
         return `This action returns a #${id} file`;
     }
 

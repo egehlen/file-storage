@@ -1,8 +1,8 @@
 export class File {
-    id: number;
+    id: string;
     name: string;
     type: string;
     size: number;
-    thumbnailUrl: string;
-    contentUrl: string;
+    contentKey: string;
+    thumbnailKey: string;
 }
