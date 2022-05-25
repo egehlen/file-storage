@@ -1,3 +1,4 @@
+import { RenameFileRequestDto } from './dto/rename-request.dto';
 import { CryptoService } from 'src/shared/crypto.service';
 import { StorageService } from './storage.service';
 import { DatabaseService } from 'src/db/database.service';
@@ -6,11 +7,12 @@ import { UploadRequestDto } from './dto/upload-request.dto';
 import * as sharp from 'sharp';
 import { UploadResultDto } from './dto/upload-result.dto';
 import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
+import { isNullOrEmpty, getThumbnailName } from 'src/shared/utilities';
 
 @Injectable()
 export class FilesService {
     private readonly allowedFileTypes = ['jpg','jpeg','png','zip','pdf','docx','xlsx'];
-    private readonly thumbnailWidth: number = 180;
+    private readonly thumbnailWidth: number = 200;
 
     constructor(
         private readonly dbService: DatabaseService,
@@ -35,14 +37,18 @@ export class FilesService {
 
         /* Upload thumbnail */
         let thumbUploadResult: ManagedUpload.SendData;
+        const hasThumbnail = this.hasThumbnail(file.originalname);
 
-        if (this.hasThumbnail(file.originalname)) {
-            const { 
-                contents: thumbContent,
-                fileName: thumbFileName
-            } = await this.generateThumbnail(file);
-            
-            thumbUploadResult = await this.storageService.upload(uploadRequest.accountId, uploadRequest.correlationId, thumbFileName, thumbContent);
+        if (hasThumbnail) {
+            const thumbContent = await this.generateThumbnail(file);
+            const thumbFileName = getThumbnailName(file.originalname);
+
+            thumbUploadResult = await this.storageService.upload(
+                uploadRequest.accountId,
+                uploadRequest.correlationId,
+                thumbFileName,
+                thumbContent
+            );
         }
 
         /* Write to database */
@@ -51,7 +57,8 @@ export class FilesService {
                 name: file.originalname,
                 type: file.mimetype,
                 size: file.size,
-                contentUrl: uploadResult.Location,
+                contentKey: uploadResult.Key,
+                thumbnailKey: thumbUploadResult?.Key,
                 thumbnailUrl: thumbUploadResult?.Location,
                 owner: {
                     connect: {
@@ -63,7 +70,9 @@ export class FilesService {
         });
 
         /* Get direct url for thumbnail */
-        const presignedUrl = !!thumbUploadResult ? await this.storageService.getPreSignedUrl(thumbUploadResult.Key) :'';
+        const presignedUrl = hasThumbnail ? 
+            await this.storageService.getPreSignedUrl(thumbUploadResult.Key) :
+            '';
 
         return {
             id: newRow.id,
@@ -81,9 +90,39 @@ export class FilesService {
         return `This action returns a #${id} file`;
     }
 
-    // update(id: number, updateFileDto: UpdateFileDto) {
-    //     return `This action updates a #${id} file`;
-    // }
+    async update(fileId: string, request: RenameFileRequestDto): Promise<boolean> {
+        const file = await this.dbService.file.findUnique({
+            where: { id: fileId },
+            select: {
+                name: true,
+                contentKey: true,
+                thumbnailKey: true
+            }
+        });
+
+        if (!!file && !isNullOrEmpty(file.name) && !isNullOrEmpty(file.contentKey)) {
+            const newFileKey = await this.storageService.rename(request.accountId, file, request.newName);
+            let newThumbKey = '';
+
+            if (!isNullOrEmpty(file.thumbnailKey)) {
+                const newThumbName = getThumbnailName(request.newName);
+                newThumbKey = await this.storageService.rename(request.accountId, file, newThumbName);
+            }
+
+            await this.dbService.file.update({
+                where: { id: fileId },
+                data: {
+                    name: request.newName,
+                    contentKey: newFileKey,
+                    thumbnailKey: newThumbKey
+                }
+            });
+
+            return true;
+        }
+
+        return false;
+    }
 
     remove(id: string) {
         return `This action removes a #${id} file`;
@@ -91,8 +130,8 @@ export class FilesService {
 
     validateRequest(request: UploadRequestDto): boolean {
         return (typeof request !== 'undefined' && request !== null) &&
-            (!!request.accountId && request.accountId !== '') &&
-            (!!request.correlationId && request.correlationId !== '');
+            (!isNullOrEmpty(request.accountId)) &&
+            (!isNullOrEmpty(request.correlationId));
     }
 
     async validateFile(file: Express.Multer.File): Promise<{ valid: boolean, message: string }> {
@@ -127,21 +166,17 @@ export class FilesService {
         return ['jpg','jpeg','png'].includes(fileName.split('.').pop());
     }
 
-    async generateThumbnail(file: Express.Multer.File): Promise<{ contents: Buffer, fileName: string }> {
+    async generateThumbnail(file: Express.Multer.File): Promise<Buffer> {
         try {
             const fileHandler = sharp(file.buffer);
             const fileContents: Buffer = await fileHandler
                 .resize(this.thumbnailWidth, null)
                 .toBuffer();
 
-            const fileNameParts = file.originalname.split('.');
-            const extension = fileNameParts.pop();
-            const fileName = `${fileNameParts.join('.')}_thumb.${extension}`;
-
-            return { contents: fileContents, fileName };
+            return fileContents;
         } catch (error) {
             //log error;
-            return { contents: null, fileName: '' };
+            return null;
         }
     }
 }
