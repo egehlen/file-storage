@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { RenameFileRequestDto } from './dto/rename-request.dto';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, UseInterceptors, UploadedFile, Patch } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -25,10 +26,10 @@ export class FilesController {
         return this.filesService.findOne(id);
     }
 
-    // @Patch(':id')
-    // update(@Param('id') id: string, @Body() updateFileDto: UpdateFileDto) {
-    //     return this.filesService.update(id, updateFileDto);
-    // }
+    @Patch(':id')
+    update(@Param('id') id: string, @Body() renameDto: RenameFileRequestDto) {
+        return this.filesService.update(id, renameDto);
+    }
 
     @Delete(':id')
     remove(@Param('id') id: string) {
