@@ -8,7 +8,7 @@ export const isNullOrEmpty = function(value: string): boolean {
 }
 
 export const getThumbnailName = function(originalFileName: string): string {
-    if (this.isNullOrEmpty(originalFileName))
+    if (isNullOrEmpty(originalFileName))
         return originalFileName;
 
     const fileNameParts = originalFileName.split('.');
