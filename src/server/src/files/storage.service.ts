@@ -6,6 +6,7 @@ import { ManagedUpload  } from "aws-sdk/clients/s3";
 import { WebSocketService } from "src/shared/web-socket.service";
 import { RenameFileDto } from './dto/rename-file.dto';
 import { isNullOrEmpty } from 'src/shared/utilities';
+import { Readable } from 'stream';
 
 @Injectable()
 export class StorageService {
@@ -55,6 +56,22 @@ export class StorageService {
         });
     }
 
+    async download(contentKey: string): Promise<Readable> {
+        const params = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: contentKey
+        };
+
+        const command = new GetObjectCommand(params);
+        const result = await this.storageClient.send(command);
+
+        if (result && result.Body) {
+            return result.Body as Readable;
+        }
+
+        return null;
+    }
+
     async rename(accountId: string, file: RenameFileDto, newName: string): Promise<string> {
         const prevKey = file.contentKey;
         const newKey = `${accountId}/${newName}`;
@@ -81,6 +98,23 @@ export class StorageService {
         }
 
         return null;
+    }
+
+    async remove(contentKey: string, thumbnailKey: string) {
+        const params = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: contentKey
+        };
+
+        let deleteCommand = new DeleteObjectCommand(params);
+        await this.storageClient.send(deleteCommand);
+
+        if (!isNullOrEmpty(thumbnailKey)) {
+            params.Key = thumbnailKey;
+            deleteCommand = new DeleteObjectCommand(params);
+
+            await this.storageClient.send(deleteCommand);
+        }
     }
 
     async getPreSignedUrl(storageKey: string): Promise<string> {

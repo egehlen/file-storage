@@ -9,6 +9,7 @@ import { UploadResultDto } from './dto/upload-result.dto';
 import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
 import { isNullOrEmpty, getThumbnailName } from 'src/shared/utilities';
 import { FileDto } from './dto/file.dto';
+import { DownloadResultDto } from './dto/download-result.dto';
 
 @Injectable()
 export class FilesService {
@@ -98,8 +99,38 @@ export class FilesService {
         return result;
     }
 
-    getOne(id: string) {
-        return `This action returns a #${id} file`;
+    async getOne(fileId: string): Promise<FileDto> {
+        const file = await this.dbService.file.findUnique({
+            where: { id: fileId }
+        });
+
+        const thumbnailUrl = !isNullOrEmpty(file.thumbnailKey) ?
+            await this.storageService.getPreSignedUrl(file.thumbnailKey) : '';
+
+        return { ...file, thumbnailUrl };
+    }
+
+    async download(fileId: string): Promise<DownloadResultDto> {
+        const file = await this.dbService.file.findUnique({
+            where: { id: fileId }
+        });
+
+        const readableContent = await this.storageService.download(file.contentKey);
+        const chunks = [];
+
+        for await (const chunk of readableContent) {
+            chunks.push(chunk);
+        }
+
+        const bufferContent = Buffer.concat(chunks);
+        const decryptedContent = this.cryptoService.decrypt(bufferContent, file.ownerId);
+
+        return {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            content: decryptedContent
+        };
     }
 
     async update(fileId: string, request: RenameFileRequestDto): Promise<boolean> {
@@ -136,8 +167,12 @@ export class FilesService {
         return false;
     }
 
-    remove(id: string) {
-        return `This action removes a #${id} file`;
+    async remove(id: string) {
+        const file = await this.dbService.file.findUnique({
+            where: { id }
+        });
+
+        await this.storageService.remove(file.contentKey, file.thumbnailKey);
     }
 
     validateRequest(request: UploadRequestDto): boolean {
