@@ -221,6 +221,18 @@ export class FilesService {
         await this.storageService.remove(file.contentKey, file.thumbnailKey);
     }
 
+    async getQuotaSummary(accountId: string) {
+        const totalFiles = await this.dbService.file.count({
+            where: { ownerId: accountId }
+        });
+
+        return {
+            totalFiles,
+            usageBytes: await this.getQuota(accountId),
+            usageRate: await this.getQuotaUsage(accountId)
+        }
+    }
+
     async getQuota(accountId: string): Promise<number> {
         const quota = await this.dbService.quota.findUnique({
             where: { accountId }
