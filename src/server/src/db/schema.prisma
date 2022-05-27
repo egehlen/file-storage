@@ -13,6 +13,7 @@ model Account {
     email String @unique
     passwordHash String
     files File[]
+    quota Quota?
 }
 
 model Session {
@@ -31,4 +32,11 @@ model File {
     thumbnailUrl String?
     owner Account @relation(fields: [ownerId], references: [id])
     ownerId String
+}
+
+model Quota {
+    id String @id @default(uuid())
+    totalUsed Int
+    account Account @relation(fields: [accountId], references: [id])
+    accountId String
 }

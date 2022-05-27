@@ -5,7 +5,6 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadRequestDto } from './dto/upload-request.dto';
 import { GetFileRequestDto } from './dto/get-request.dto';
-import { createReadStream } from 'fs';
 import { Readable } from 'stream';
 
 @Controller('files')
