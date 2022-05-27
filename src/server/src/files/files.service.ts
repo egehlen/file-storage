@@ -15,6 +15,10 @@ import { DownloadResultDto } from './dto/download-result.dto';
 export class FilesService {
     private readonly allowedFileTypes = ['jpg','jpeg','png','zip','pdf','docx','xlsx'];
     private readonly thumbnailWidth: number = 200;
+    private readonly limitSettings = {
+        maxSingleFileSize: 5 * 1024 * 1024, // 5mb
+        maxQuotaUsagePerAccount: 100 * 1024 * 1024 // 100mb
+    };
 
     constructor(
         private readonly dbService: DatabaseService,
@@ -23,7 +27,7 @@ export class FilesService {
     ) { }
 
     async create(uploadRequest: UploadRequestDto, file: Express.Multer.File): Promise<UploadResultDto> {
-        /* Validate */
+        /* Validation */
         if (!this.validateRequest(uploadRequest)) {
             return { success: false, message: 'Could not complete the operation: missing upload data.' };
         }
@@ -33,13 +37,42 @@ export class FilesService {
             return { success: false, message: fileValidationResult.message };
         }
 
+        // Generate thumbnail before all uploads
+        const hasThumbnail = this.hasThumbnail(file.originalname);
+        let thumbContent: Buffer = null
+        let thumbFileName = '';
+
+        if (hasThumbnail) {
+            thumbContent = await this.generateThumbnail(file);
+            thumbFileName = getThumbnailName(file.originalname);
+        }
+
+        // Then evaluate the storage use of main file + thumbnail (if applicable)
+        const quotaValidationResult = await this.validateQuota(
+            uploadRequest.accountId,
+            file.buffer.byteLength,
+            hasThumbnail ? thumbContent.byteLength : null
+        );
+
+        if (!quotaValidationResult.valid) {
+            return { success: false, message: quotaValidationResult.message };
+        }
+
         /* Upload main file */
         const encryptedFile = this.cryptoService.encrypt(file.buffer, uploadRequest.accountId);
         const uploadResult = await this.storageService.upload(uploadRequest.accountId, uploadRequest.correlationId, file.originalname, encryptedFile);
 
         /* Upload thumbnail */
         let thumbUploadResult: ManagedUpload.SendData;
-        const hasThumbnail = this.hasThumbnail(file.originalname);
+
+        if (hasThumbnail) {
+            thumbUploadResult = await this.storageService.upload(
+                uploadRequest.accountId,
+                uploadRequest.correlationId,
+                thumbFileName,
+                thumbContent
+            );
+        }
 
         if (hasThumbnail) {
             const thumbContent = await this.generateThumbnail(file);
@@ -54,7 +87,7 @@ export class FilesService {
         }
 
         /* Write to database */
-        const newRow = await this.dbService.file.create({
+        const createFile = this.dbService.file.create({
             data: {
                 name: file.originalname,
                 type: file.mimetype,
@@ -71,13 +104,26 @@ export class FilesService {
             select: { id: true }
         });
 
+        const updateQuota = this.dbService.quota.upsert({
+            where: { accountId: uploadRequest.accountId },
+            update: {
+                totalUsed: quotaValidationResult.totalAfterUpload
+            },
+            create: {
+                accountId: uploadRequest.accountId,
+                totalUsed: quotaValidationResult.totalAfterUpload
+            }
+        });
+
+        const [newFile] = await Promise.all([createFile, updateQuota]);
+        
         /* Get direct url for thumbnail */
         const presignedUrl = hasThumbnail ? 
             await this.storageService.getPreSignedUrl(thumbUploadResult.Key) :
             '';
 
         return {
-            id: newRow.id,
+            id: newFile.id,
             success: true,
             message: 'Upload successful!',
             address: presignedUrl
@@ -175,6 +221,25 @@ export class FilesService {
         await this.storageService.remove(file.contentKey, file.thumbnailKey);
     }
 
+    async getQuota(accountId: string): Promise<number> {
+        const quota = await this.dbService.quota.findUnique({
+            where: { accountId }
+        });
+
+        return !!quota ? quota.totalUsed : 0;
+    }
+
+    async getQuotaUsage(accountId: string): Promise<number> {
+        const total = await this.getQuota(accountId);
+
+        if (total > 0) {
+            // Calc the current usage % for the account
+            return Math.round((total / this.limitSettings.maxQuotaUsagePerAccount) * 100);
+        }
+
+        return 0;
+    }
+
     validateRequest(request: UploadRequestDto): boolean {
         return (typeof request !== 'undefined' && request !== null) &&
             (!isNullOrEmpty(request.accountId)) &&
@@ -182,6 +247,7 @@ export class FilesService {
     }
 
     async validateFile(file: Express.Multer.File): Promise<{ valid: boolean, message: string }> {
+        // Check if the file buffer is valid
         try {
             const validFile = typeof file !== 'undefined' && file !== null;
             const validBuffer = typeof file.buffer !== 'undefined' && file.buffer !== null;
@@ -193,6 +259,7 @@ export class FilesService {
             return { valid: false, message: 'File contents was empty.' };
         }
 
+        // Check if the file has a valid extension and its type is allowed
         try {
             const fileExtension = file.originalname.split('.').length > 0 ? file.originalname.split('.').pop() : '';
             const validExtension = this.allowedFileTypes.includes(fileExtension);
@@ -206,7 +273,31 @@ export class FilesService {
             return { valid: false, message: 'File unreadable or corrupted.' };
         }
 
+        // Check if the file does not exceed the max allowed size
+        try {
+            if (file.buffer.byteLength > this.limitSettings.maxSingleFileSize)
+                return { valid: false, message: 'File exceeds the maximum allowed size for a single file (5 MB).' };
+        } catch (error) {
+            return { valid: false, message: 'Could not determine file size.' };
+        }
+
         return { valid: true, message: '' };
+    }
+
+    async validateQuota(accountId: string, fileSize: number, thumbSize?: number): Promise<{ valid: boolean, message: string, totalAfterUpload?: number }> {
+        // Check if there's still space to upload it
+        try {
+            const spaceUsed = await this.getQuota(accountId);
+            const totalAfterUpload = spaceUsed + fileSize + (thumbSize !== null ? thumbSize : 0);
+
+            if (totalAfterUpload >= this.limitSettings.maxQuotaUsagePerAccount) {
+                return { valid: false, message: 'Disk/quota usage exceeded.' };
+            }
+
+            return { valid: true, message: '', totalAfterUpload };
+        } catch (error) {
+            return { valid: false, message: 'Could not check for disk/quota usage.' };
+        }
     }
 
     hasThumbnail(fileName: string): boolean {
