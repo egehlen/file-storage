@@ -5,6 +5,7 @@ import { AccountService } from 'src/account/account.service';
 import { CryptoService } from 'src/shared/crypto.service';
 import { AuthService } from './auth.service';
 
+//#region [Mocks]
 const mocks = {
     results: {
         session: { id: 1, token: '1234567890' },
@@ -12,6 +13,7 @@ const mocks = {
         jwt: '1234567890'
     }
 };
+//#endregion
 
 describe('AuthService', () => {
     let service: AuthService;
