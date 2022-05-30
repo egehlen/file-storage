@@ -5,6 +5,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { DatabaseService } from 'src/db/database.service';
 import { AccountService } from './account.service';
 
+//#region [Mocks]
 const mocks = {
     dtos: {
         create:  { name: 'abc', email: 'abc@abc.com', password: '123' },
@@ -19,6 +20,7 @@ const mocks = {
         updated:  { id: '1', name: 'cba', email: 'cba@cba.com', passwordHash: '345' }
     }
 };
+//#endregion
 
 describe('AccountService', () => {
     let service: AccountService;

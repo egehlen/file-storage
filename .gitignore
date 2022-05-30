@@ -4,3 +4,4 @@ dist
 !.env.example
 .vscode
 .vscode/launch.json
+coverage

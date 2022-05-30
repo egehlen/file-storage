@@ -7,6 +7,7 @@ import { CryptoService } from 'src/shared/crypto.service';
 import { DatabaseService } from 'src/db/database.service';
 import * as httpMocks from 'node-mocks-http';
 
+// #region [Mocks]
 const mocks = {
     dtos: {
         login: { email: 'abc@abc.com', password: '4321' },
@@ -14,12 +15,13 @@ const mocks = {
     },
     results: {
         hashedPassword: '1234',
-        login: { token: '1234567890' },
+        login: { authorization: '1234567890' },
         logout: { result: true },
         session: { id: 1, token: '1234567890' },
         findByEmail: { id: 1, name: 'abc', email: 'abc@abc.com', passwordHash: '1234' }
     }
 };
+// #endregion
 
 describe('AuthController', () => {
     let controller: AuthController;
@@ -53,7 +55,7 @@ describe('AuthController', () => {
                 {
                     provide: JwtService,
                     useValue: {
-                        sign: () => mocks.results.login.token
+                        sign: () => mocks.results.login.authorization
                     }
                 }
             ],

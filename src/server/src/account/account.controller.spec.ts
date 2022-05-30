@@ -1,3 +1,4 @@
+import { AuthService } from './../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { DatabaseService } from '../db/database.service';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -5,6 +6,7 @@ import { AccountController } from './account.controller';
 import { AccountService } from './account.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 
+//#region [Mocks]
 const mocks = {
     dtos: {
         create:  { name: 'abc', email: 'abc@abc.com', password: '123' },
@@ -19,6 +21,7 @@ const mocks = {
         remove:  { id: '1', name: 'abc', email: 'abc@abc.com', passwordHash: '123' }
     }
 };
+//#endregion
 
 describe('AccountController', () => {
     let controller: AccountController;
@@ -37,6 +40,7 @@ describe('AccountController', () => {
                     }
                 },
                 { provide: DatabaseService, useValue: {} },
+                { provide: AuthService, useValue: {} },
                 { provide: AuthGuard, useValue: { canActivate: () => true } },
                 { provide: JwtService, useValue: {} }
             ],
