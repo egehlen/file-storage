@@ -1,0 +1,26 @@
+@import '~antd/dist/antd.css';
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;700&display=swap');
+
+/**/
+
+* {
+    font-family: 'Ubuntu', sans-serif !important;
+}
+
+#root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    overflow: hidden !important;
+    background-color: grey;
+}
+
+.app {
+    flex: 0 0 85%;
+    height: 85%;
+    flex-flow: row;
+    background-color: white;
+    /* background: url('assets/background.png'); */
+}

@@ -1,0 +1,20 @@
+.search-input {
+    width: 70% !important;
+    border-radius: 3px !important;
+}
+
+.search-input button.ant-input-search-button {
+    color: #fff !important;
+    border-color: #1890ff;
+    background: #1890ff;
+    text-shadow: 0 -1px 0 rgb(0 0 0 / 12%);
+    box-shadow: 0 2px 0 rgb(0 0 0 / 5%);
+}
+
+.search-input button.ant-input-search-button {
+    border-radius: 0 3px 3px 0 !important;
+}
+
+.search-input span.ant-input-affix-wrapper {
+    border-radius: 3px 0 0 3px !important;
+}

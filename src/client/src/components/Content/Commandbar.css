@@ -1,0 +1,25 @@
+.commandbar-wrapper {
+    display: flex;
+    position: relative;
+    width: 100%;
+    align-items: center;
+}
+
+.commandbar-wrapper .title {
+    position: absolute;
+    line-height: 46px;
+    margin: 0;
+    left: 2rem;
+    font-weight: bold;
+}
+
+.commandbar {
+    width: 100%;
+    margin: 0 2rem !important;
+    justify-content: end;
+    /* border-bottom: none !important; */
+}
+
+.commandbar li {
+    border-bottom: 1px solid #f0f0f0 !important;
+}

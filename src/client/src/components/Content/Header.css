@@ -1,0 +1,17 @@
+.header {
+    height: 95px;
+    display: flex;
+    flex-flow: row;
+    justify-content: left;
+    align-items: center;
+}
+
+.search-wrapper {
+    width: 70%;
+    display: flex;
+    justify-content: center;
+}
+
+.user-info-wrapper {
+    width: 30%;
+}
