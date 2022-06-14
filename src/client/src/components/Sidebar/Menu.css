@@ -1,0 +1,35 @@
+.menu {
+    padding: 2rem;
+    background-color: inherit !important;
+}
+
+.menu li {
+    padding: 0.4rem 2rem !important;
+    height: auto !important;
+}
+
+.menu li.ant-menu-item-selected {
+    background-color: #dfdfdf !important;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.menu li {
+    margin-bottom: 0 !important;
+    color: grey !important;
+}
+
+.menu li span.anticon {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    color: grey;
+}
+
+.menu li.ant-menu-item-selected span.anticon {
+    font-size: 1.3rem;
+    color: #1890ff;
+}
+
+.menu li.ant-menu-item-selected::after {
+    border-right-width: 6px !important;
+}
