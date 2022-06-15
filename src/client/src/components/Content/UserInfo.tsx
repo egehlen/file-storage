@@ -1,6 +1,6 @@
 import { PoweroffOutlined, UserOutlined } from "@ant-design/icons";
 import { Dropdown, Menu, Tooltip } from "antd";
-import userAvatar from 'assets/user-avatar.png';
+// import userAvatar from './assets/user-avatar.png';
 
 import './UserInfo.css';
 
@@ -22,7 +22,7 @@ function UserInfo() {
                 </Tooltip>
             </div>
             <div className='user-avatar'>
-                <img src={userAvatar} alt='user avatar' />
+                {/* <img src={userAvatar} alt='user avatar' /> */}
             </div>
             <Dropdown.Button
                 className='user-actions'
