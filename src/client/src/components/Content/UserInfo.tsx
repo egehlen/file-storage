@@ -1,7 +1,7 @@
 import { PoweroffOutlined, UserOutlined } from "@ant-design/icons";
 import { Dropdown, Menu, Tooltip } from "antd";
-
 import userAvatar from 'assets/user-avatar.png';
+
 import './UserInfo.css';
 
 function UserInfo() {
