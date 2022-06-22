@@ -1,0 +1,10 @@
+.upload-wrapper {
+    padding: 0 2rem 2rem 2rem;
+}
+
+.upload-wrapper button {
+    width: 80%;
+    left: 10%;
+    height: 2.8rem;
+    box-shadow: 0 5px 10px 2px #c3c3c3;
+}
