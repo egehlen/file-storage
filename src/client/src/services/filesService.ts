@@ -1,6 +1,6 @@
 import axios from "axios";
 import { UserFile } from "types/types.UserFiles";
-import IFile from "interfaces/IFile";
+import File from "interfaces/file";
 import settings from 'settings.json';
 
 class FilesService {
@@ -10,10 +10,10 @@ class FilesService {
         this.apiEndpoint = settings.files_api;
     }
 
-    public async getAll(senderAddress: string) : Promise<IFile[]> {
+    public async getAll(senderAddress: string) : Promise<File[]> {
         return new Promise(async (resolve, reject) => {
             try {
-                let files : IFile[] = [];
+                let files : File[] = [];
                 const result : any = await axios.get(`${this.apiEndpoint}/all`, { params: { sender: senderAddress } });
 
                 if (result && result.data && result.data.length) {
